@@ -1,24 +1,24 @@
 const express = require('express');
 const app = express();
+const port = 3000;
+
 const listViewRouter = require('./list-view-router');
 const listEditRouter = require('./list-edit-router');
 
+app.use(express.json());
 
-let tasks = [
-    {
-        "id":"123456",
-        "isCompleted":false,
-        "description":"Walk the dog",
+app.use((req, res, next) => {
+    const validMethods = ['GET', 'POST', 'PUT', 'DELETE'];
+    if (!validMethods.includes(req.method)) {
+        return res.status(404).send('Not found');
     }
-];
-
-app.get('/tasks', (req, res) => {
-    res.json(tasks);
+    next();
 });
 
-app.use('/list-view', listViewRouter);
-app.use('/list-edit', listEditRouter);
+app.use('/', listViewRouter);
+app.use('/', listEditRouter);
 
-app.listen(3000, () => {
-  console.log('Server running at http://localhost:3000');
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
 });
+

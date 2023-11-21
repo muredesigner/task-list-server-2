@@ -9,18 +9,15 @@ let tasks = [
   },
 ];
 
-// Middleware para validar el cuerpo de las solicitudes POST y PUT
-router.use(['/create', '/update/:id'], (req, res, next) => {
-  const { id, isCompleted, description } = req.body;
-  
-  if (!req.body || Object.keys(req.body).length === 0) {
-    return res.status(400).send('El cuerpo de la solicitud está vacío');
+router.use((req, res, next) => {
+  if (req.method === 'POST' || req.method === 'PUT') {
+      if (!req.body || Object.keys(req.body).length === 0) {
+          return res.status(400).send('Bad Request: Body is empty');
+      }
+      if (!req.body.id || !req.body.isCompleted || !req.body.description) {
+          return res.status(400).send('Bad Request: Missing required attributes');
+      }
   }
-
-  if (!id || isCompleted === undefined || !description) {
-    return res.status(400).send('Información no válida o atributos faltantes para crear las tareas');
-  }
-
   next();
 });
 
