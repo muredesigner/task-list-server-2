@@ -13,6 +13,7 @@ let users = [
         "username": "user1",
         "password": "password1"
     },
+    // Agrega aquí más usuarios si lo deseas.
 ];
 
 app.post('/login', (req, res) => {
@@ -54,21 +55,65 @@ function authenticateToken(req, res, next) {
 }
 
 app.get('/protected', authenticateToken, (req, res) => {
-  res.send('Welcome to the protected route!');
+    res.send('Welcome to the protected route!');
 });
 
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+let tasks = [
+    {
+        "id":"123456",
+        "isCompleted":false,
+        "description":"Walk the dog",
+    }
+];
 
-  if (token == null) return res.sendStatus(401);
+app.get('/tasks', (req, res) => {
+    res.json(tasks);
+});
 
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-      if (err) return res.sendStatus(403);
-      req.user = user;
-      next();
-  });
-}
+app.get('/tasks/:id', (req, res) => {
+    const task = tasks.find(t => t.id === req.params.id);
+    if (task) {
+        res.json(task);
+    } else {
+        res.status(404).send('Task not found');
+    }
+});
+
+app.post('/tasks', (req, res) => {
+    const newTask = req.body;
+    tasks.push(newTask);
+    res.status(201).json(newTask);
+});
+
+app.put('/tasks/:id', (req, res) => {
+    const task = tasks.find(t => t.id === req.params.id);
+    if (task) {
+        Object.assign(task, req.body);
+        res.json(task);
+    } else {
+        res.status(404).send('Task not found');
+    }
+});
+
+app.delete('/tasks/:id', (req, res) => {
+    const taskIndex = tasks.findIndex(t => t.id === req.params.id);
+    if (taskIndex > -1) {
+        tasks.splice(taskIndex, 1);
+        res.status(204).send();
+    } else {
+        res.status(404).send('Task not found');
+    }
+});
+
+app.get('/tasks/completed', (req, res) => {
+    const completedTasks = tasks.filter(t => t.isCompleted);
+    res.json(completedTasks);
+});
+
+app.get('/tasks/incomplete', (req, res) => {
+    const incompleteTasks = tasks.filter(t => !t.isCompleted);
+    res.json(incompleteTasks);
+});
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
